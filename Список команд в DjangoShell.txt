@@ -1,0 +1,71 @@
+python manage.py shell
+from news.models import *
+
+# ‘оздание 2-х пользователей
+
+user_1 = User.objects.create_user(username='Igor') # создание пользователя с именем "олег"
+user_2 = User.objects.create_user(username='Tany') # создание пользователя с именем "…гор"
+
+# ‘оздание двух объектов модели Author, свЯзанные с пользователЯми
+
+author_1 = Author.objects.create(user=user_1) # создание объекта "автор_1" со ссылкой на модель "user" в классе "Author"
+author_2 = Author.objects.create(user=user_2) # создание объекта "автор_2" со ссылкой на модель "user" в классе "Author"
+
+# „обавление 4-х категорий в модель Category
+
+category_1 = Category.objects.create(name='ЉатегориЯ-1') # создание объекта "категориЯ_1" с именем "ЉатегориЯ-1"
+category_2 = Category.objects.create(name='ЉатегориЯ-2') # создание объекта "категориЯ_2" с именем "ЉатегориЯ-2"
+category_3 = Category.objects.create(name='ЉатегориЯ-3') # создание объекта "категориЯ_3" с именем "ЉатегориЯ-3"
+category_4 = Category.objects.create(name='ЉатегориЯ-4') # создание объекта "категориЯ_4" с именем "ЉатегориЯ-4"
+
+# „обавление 2-х статей и 1 новости
+
+post_1 = Post.objects.create(author=author_1, post_type='AR', title='TITLE_1', content='CONTENT_1') # создание объекта 'пост_1' с переданными атрибутами 'автор', 'тип поста', 'содержание', 'заголовок' 
+post_2 = Post.objects.create(author=author_2, post_type='AR', title='TITLE_2', content='CONTENT_2') # создание объекта 'пост_2' с переданными атрибутами 'автор', 'тип поста', 'содержание', 'заголовок' 
+post_3 = Post.objects.create(author=author_1, post_type='NE', title='TITLE_3', content='CONTENT_3') # создание объекта 'пост_3(новость)' с переданными атрибутами 'автор', 'тип поста', 'содержание', 'заголовок'
+
+# Џрисвоение постам и новости по 2 категории
+
+post_1.categories.add(category_1, category_2) # присвоение 2-х категорий длЯ поста_1
+post_1.save() 								  # сохранЯем данные в посте_1
+post_2.categories.add(category_3, category_4) # присвоение 2-х категорий длЯ поста_2
+post_2.save()								  # сохранЯем данные в посте_2
+post_3.categories.add(category_2, category_4) # присвоение 2-х категорий длЯ поста_3(новости)
+post_3.save() 								  # сохранЯем данные в посте_3(новость)
+
+# ‘оздание 4-х комментариев к разным объектам модели Post (в каждом объекте 1 комментарий)
+
+comment_1 = Comment.objects.create(post=post_1, user=user_1, content='CONTENT_1') # создание 'комментариЯ_1', в который передаем пост, имЯ пользователЯ и содержание 
+comment_2 = Comment.objects.create(post=post_2, user=user_2, content='CONTENT_2') # создание 'комментариЯ_2', в который передаем пост, имЯ пользователЯ и содержание
+comment_3 = Comment.objects.create(post=post_3, user=user_1, content='CONTENT_2') # создание 'комментариЯ_3', в который передаем пост, имЯ пользователЯ и содержание
+comment_4 = Comment.objects.create(post=post_1, user=user_2, content='CONTENT_2') # создание 'комментариЯ_4', в который передаем пост, имЯ пользователЯ и содержание
+
+# Љорректирование рейтингов статей и новости с помощью функций like() и dislike()
+
+post_1.like()       # увеличиваем рейтинг первого поста на +1 
+post_2.dislike      # уменьшаем рейтинг второго поста на -1
+comment_1.like()    # увеличиваем рейтинг первого комментраиЯ на +1 
+comment_2.dislike() # уменьшаем рейтинг второго комментариЯ на -1
+# длЯ проверки рейтинга постов или комментариев используем (пример: comment_1.rating)
+
+# Ћбновление рейтингов авторов
+
+author_1.update_rating() # обновление рейтинга 'автора_1'
+author_2.update_rating() # обновление рейтинга 'автора_2'
+
+# ‚ывод username и рейтинг лучшего пользователЯ (с применением сортировки и возвратом полЯ первого объекта)
+
+best_user = Author.objects.order_by('-rating').values('user__username', 'rating').first() # сортировка по рейтингу (от высшего к низжему) и вывод первого объекта
+best_user # вывод лучшего пользователЯ
+
+#‚ывод даты добавлениЯ, username автора, рейтинг, заголовок и превью лучшей статьи, основываЯсь на лайках/дислайках к этой статье
+
+best_post = Post.objects.order_by('-rating').values('time_create', 'author__user__username', 'rating', 'title').first()
+best_post
+best_post_for_preview = Post.objects.order_by('-rating').first()
+best_post_for_preview.preview # вывод превью лучшей статьи
+
+# ‚ывод всех комментраиев (дата, пользователь, рейтинг, текст) к статье
+
+com_1 = Comment.objects.filter(post=best_post_for_preview)
+com_1 
